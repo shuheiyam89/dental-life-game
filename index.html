@@ -665,6 +665,7 @@ fieldset.gender { border: none; margin: 0 0 8px; padding: 0; }
 .nameplate { top: -11px; line-height: 18px; padding: 1px 12px; font-size: 13px; z-index: 2; }
 .scene.choosing .dialog-wrap { margin-top: 12px; }
 @media (max-height: 740px) { .scene.choosing .dialog-wrap { margin-top: 11px; } }
+.dialog-wrap > .nameplate { position: absolute; top: -11px; left: 14px; z-index: 3; pointer-events: none; }
 
 :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 html, body { background: var(--bg); }
@@ -4020,8 +4021,10 @@ function careerPath(s) {
       '<main class="scene choosing"><div class="wrap">' +
       '<div class="stage" id="stage" aria-hidden="true"><div class="chapter-card" id="chapter"></div></div>' +
       '<div class="dialog-wrap">' +
+      /* 名前の札はボタンの外に置く（スマホのブラウザはボタンからはみ出した部分を表示しないため） */
+      '<span class="nameplate" id="nameplate" aria-hidden="true"></span>' +
       '<button class="dialog" id="dialog" data-action="advance" aria-label="会話を進める">' +
-      '<span class="nameplate" id="nameplate"></span><span class="line" id="line" aria-live="polite"></span><span class="cue" id="cue">▼</span></button>' +
+      '<span class="line" id="line" aria-live="polite"></span><span class="cue" id="cue">▼</span></button>' +
       '<div class="dialog-tools" id="tools"></div>' +
       '</div>' +
       '<div id="panel"></div>' +
