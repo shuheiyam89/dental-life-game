@@ -672,6 +672,7 @@ html, body { background: var(--bg); }
 </style>
 </head>
 <body>
+<script>window.APP_VERSION = "202610271238";</script>
 
   <!-- ゲームの画面はすべて js/ui.js がここに描画します -->
   <div id="app" aria-live="polite"></div>
@@ -3815,6 +3816,7 @@ function careerPath(s) {
       '<ul class="title-meta"><li>⏱ 約10〜15分</li><li>📱 スマホでも遊べます</li><li>🎵 音楽あり</li></ul>' +
       '<div style="margin-top:12px">' + soundButton('title-sound') + '</div>' +
       '<p class="demo-note">※社内提案用の試作版です。登場する医院・求人はすべて架空のデモデータです。</p>' +
+      (window.APP_VERSION ? '<p class="demo-note">ver. ' + esc(window.APP_VERSION) + '</p>' : '') +
       '</section></div></main>';
   }
 
@@ -4545,7 +4547,10 @@ function careerPath(s) {
 <script>
 /* オフラインでも遊べるようにする（https で公開したときだけ動きます） */
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  var hadController = !!navigator.serviceWorker.controller, reloaded = false;
+  /* 新しい版が届いたら、自動で1回だけ読み込み直す */
+  navigator.serviceWorker.addEventListener('controllerchange', function () { if (hadController && !reloaded) { reloaded = true; location.reload(); } });
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (r) { r.update(); }).catch(function () {}); });
 }
 </script>
 </body>
