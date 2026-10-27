@@ -1,0 +1,26 @@
+{
+  "name": "歯科人生ゲーム",
+  "short_name": "歯科人生",
+  "description": "15歳から始まる、あなたの歯科人生。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3f9f9",
+  "theme_color": "#2fb7a3",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
