@@ -659,6 +659,13 @@ fieldset.gender { border: none; margin: 0 0 8px; padding: 0; }
 .family-list b { color: var(--mint-dark); }
 @media (max-height: 740px) { .family-list { font-size: 12.5px; } .family-card { padding: 10px 12px; } }
 
+/* 名前の札が欠けないように：会話ウィンドウ自体ははみ出しを隠さず、文章の部分だけをスクロールさせる */
+.scene.choosing .dialog { overflow: visible; }
+.scene.choosing .dialog .line { flex: 1; min-height: 0; overflow-y: auto; }
+.nameplate { top: -11px; line-height: 18px; padding: 1px 12px; font-size: 13px; z-index: 2; }
+.scene.choosing .dialog-wrap { margin-top: 12px; }
+@media (max-height: 740px) { .scene.choosing .dialog-wrap { margin-top: 11px; } }
+
 :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 html, body { background: var(--bg); }
 </style>
