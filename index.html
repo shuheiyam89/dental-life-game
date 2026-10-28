@@ -562,12 +562,12 @@ details.terms dt::before { content: ""; }
 /* プロフィール画面 */
 .setup-card { text-align: left; }
 .setup-card .brand { text-align: center; }
-.setup-title { text-align: center; font-size: 22px; margin: 8px 0 20px; }
+.setup-title { text-align: center; font-size: clamp(18px, 5.2vw, 22px); margin: 8px 0 20px; }
 .field-label { display: block; font-weight: 800; font-size: 15px; margin: 0 0 6px; padding: 0; }
 .field-label small { font-weight: 500; color: var(--ink-soft); font-size: 12px; margin-left: 4px; }
 .name-row { display: flex; gap: 8px; }
 .name-row input {
-  flex: 1; min-width: 0; min-height: 50px; padding: 0 14px; font: inherit; font-size: 17px;
+  flex: 1; width: 0; min-width: 0; min-height: 50px; padding: 0 14px; /* width:0 … 入力欄の元々の幅でカードが広がらないように */ font: inherit; font-size: 17px;
   border: 2px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink);
 }
 .name-row input:focus { outline: none; border-color: var(--mint); box-shadow: 0 0 0 4px rgba(47,183,163,.15); }
@@ -672,7 +672,7 @@ html, body { background: var(--bg); }
 </style>
 </head>
 <body>
-<script>window.APP_VERSION = "202610271238";</script>
+<script>window.APP_VERSION = "202610281142";</script>
 
   <!-- ゲームの画面はすべて js/ui.js がここに描画します -->
   <div id="app" aria-live="polite"></div>
