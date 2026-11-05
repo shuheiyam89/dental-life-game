@@ -10,6 +10,18 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="歯科人生">
+<meta property="og:type" content="website">
+<meta property="og:title" content="歯科人生ゲーム">
+<meta property="og:description" content="15歳から始まる、あなたの歯科人生。選択で未来が変わる、ドット絵の人生シミュレーションゲーム。">
+<meta property="og:url" content="https://shuheiyam89.github.io/dental-life-game/">
+<meta property="og:image" content="https://shuheiyam89.github.io/dental-life-game/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="歯科人生ゲーム">
+<meta name="twitter:description" content="15歳から始まる、あなたの歯科人生。">
+<meta name="twitter:image" content="https://shuheiyam89.github.io/dental-life-game/og.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -667,12 +679,40 @@ fieldset.gender { border: none; margin: 0 0 8px; padding: 0; }
 @media (max-height: 740px) { .scene.choosing .dialog-wrap { margin-top: 11px; } }
 .dialog-wrap > .nameplate { position: absolute; top: -11px; left: 14px; z-index: 3; pointer-events: none; }
 
+/* =========================================================
+   結果のシェア
+   ========================================================= */
+.medal-share { margin-top: 12px; }
+.share-preview { max-width: 360px; margin: 0 auto 14px; }
+.share-preview img { display: block; width: 100%; max-width: 100%; aspect-ratio: 4 / 5; border-radius: 14px; background: var(--bg); box-shadow: 0 0 0 2px #fff, 0 0 0 4px #cfe7e2; }
+.share-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.share-btn {
+  display: flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 12px;
+  border-radius: 12px; border: 2px solid var(--line); background: #fff; color: var(--ink);
+  font: inherit; font-size: 15px; font-weight: 800; text-decoration: none; cursor: pointer;
+}
+.share-btn:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.share-btn.native { grid-column: 1 / -1; background: linear-gradient(135deg, var(--mint), #39a9d6); color: #fff; border: none; }
+.share-btn.x { background: #14171a; color: #fff; border-color: #14171a; }
+.share-btn.line { background: #06c755; color: #fff; border-color: #06c755; }
+.share-btn.fb { background: #1877f2; color: #fff; border-color: #1877f2; }
+.share-btn[hidden] { display: none; }
+.share-note { font-size: 12.5px; color: var(--ink-soft); margin: 10px 0 0; line-height: 1.6; }
+.toast {
+  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 100;
+  background: rgba(20, 45, 48, .92); color: #fff; padding: 10px 18px; border-radius: 999px; font-size: 14px; font-weight: 700;
+  animation: fade .2s ease; max-width: calc(100% - 32px); text-align: center;
+}
+/* シェアボタン：2列に並べ、余った1つは横いっぱいに広げる */
+.share-buttons { display: flex; flex-wrap: wrap; }
+.share-buttons > .share-btn { flex: 1 1 calc(50% - 4px); }
+
 :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 html, body { background: var(--bg); }
 </style>
 </head>
 <body>
-<script>window.APP_VERSION = "202610281142";</script>
+<script>window.APP_VERSION = "202611052252";</script>
 
   <!-- ゲームの画面はすべて js/ui.js がここに描画します -->
   <div id="app" aria-live="polite"></div>
@@ -3776,7 +3816,7 @@ function careerPath(s) {
     else if (state.screen === 'setup') app.innerHTML = setupView();
     else if (state.screen === 'event') { clearInterval(ui.typing); app.innerHTML = eventView(); window.scrollTo(0, 0); prepareBeats(); showBeat(ui.instant); }
     else if (state.screen === 'ending') app.innerHTML = endingView();
-    else if (state.screen === 'result') app.innerHTML = resultView();
+    else if (state.screen === 'result') { app.innerHTML = resultView(); shareCard = { url: null, blob: null }; buildShareCard(); }
 
     if (opts.scrollTop !== false && state.screen !== 'event') window.scrollTo(0, 0);
     if (state.screen === 'event') {
@@ -4280,7 +4320,8 @@ function careerPath(s) {
     html += '<section class="type-medal"><div class="icon" aria-hidden="true">' + t.icon + '</div>' +
       '<div class="label">あなたの仕事タイプ</div><h2>' + esc(t.name) + '</h2>' +
       '<p class="catch">' + esc(t.catch) + '</p>' +
-      '<span class="subtype">サブの傾向：' + esc(d.sub.name) + '</span></section>';
+      '<span class="subtype">サブの傾向：' + esc(d.sub.name) + '</span>' +
+      '<div class="medal-share"><button class="btn small" data-action="goto-share">📣 結果をシェアする</button></div></section>';
 
     /* 0. 人生アルバム */
     html += '<section class="section"><div class="section-head"><span class="num">★</span><h3>人生アルバム</h3></div><ul class="album">' + albumFrames().map(function (a) {
@@ -4336,9 +4377,163 @@ function careerPath(s) {
 
     html += '<div class="disclaimer">この診断は、ゲームの中の選択をもとにした<b>参考診断</b>です。医学的・心理学的な性格診断や、採用の適性検査ではありません。相性の目安は、ゲーム内の選択と架空の医院データから計算したもので、実際の採用や就職のしやすさを示すものではありません。</div>';
 
+    /* 結果をシェアする */
+    html += shareSection();
+
     html += '<div class="result-actions"><button class="btn block" data-action="restart">もう一度プレイする</button></div>';
     html += '</div></main>';
     return html;
+  }
+
+  /* ---------------- 結果のシェア ----------------
+     ・シェアする文章と画像には、名前や貯金額などは入れません。
+     ・window.SHARE_MODE === 'artifact'（claude.ai の共有リンク版）では、画像の保存とスマホの共有画面は使えないため表示しません。 */
+  var GAME_URL = window.GAME_URL || 'https://shuheiyam89.github.io/dental-life-game/';
+  var shareCard = { url: null, blob: null };
+
+  function shareText() {
+    var d = diagnose(state);
+    return '【歯科人生ゲーム】\n15歳から始めたわたしの人生は…\n「' + lifeTitle(state) + '」\n仕事タイプ：' + d.main.icon + d.main.name + '\n' + d.main.catch + '\n#歯科人生ゲーム';
+  }
+
+  function shareSection() {
+    var text = shareText();
+    var x = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(GAME_URL);
+    var line = 'https://line.me/R/share?text=' + encodeURIComponent(text + '\n' + GAME_URL);
+    var fb = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(GAME_URL);
+    var limited = window.SHARE_MODE === 'artifact';
+    return '<section class="section share-section" id="share"><div class="section-head"><span class="num">📣</span><h3>結果をシェアする</h3></div>' +
+      '<div class="share-preview"><img id="share-card" alt="シェア用の結果カード（作成中）"></div>' +
+      '<div class="share-buttons">' +
+      '<button class="share-btn native" data-action="share-native" id="share-native" hidden>📱 画像つきでシェア</button>' +
+      '<a class="share-btn x" href="' + x + '" target="_blank" rel="noopener">𝕏 でポスト</a>' +
+      '<a class="share-btn line" href="' + line + '" target="_blank" rel="noopener">LINE で送る</a>' +
+      '<a class="share-btn fb" href="' + fb + '" target="_blank" rel="noopener">Facebook</a>' +
+      (limited ? '' : '<button class="share-btn save" data-action="share-save">🖼 画像を保存</button>') +
+      '<button class="share-btn copy" data-action="share-copy">📋 文章をコピー</button>' +
+      '</div>' +
+      '<p class="share-note">' + (limited ? '画像つきのシェアは、公開版（' + esc(GAME_URL) + '）から使えます。' : 'Instagramなどには「画像を保存」してから投稿してください。') + '<br>※シェアする文章と画像に、名前や貯金額は入りません。</p>' +
+      '</section>';
+  }
+
+  function loadImg(src) {
+    return new Promise(function (ok) { var im = new Image(); im.onload = function () { ok(im); }; im.onerror = function () { ok(null); }; im.src = src; });
+  }
+  function roundRect(g, x, y, w, h, r) {
+    g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+  }
+  /* 日本語を1文字ずつ測って折り返す */
+  function wrapText(g, text, maxW) {
+    var lines = [], cur = '';
+    Array.from(text).forEach(function (ch) {
+      if (g.measureText(cur + ch).width > maxW && cur) { lines.push(cur); cur = ch; } else cur += ch;
+    });
+    if (cur) lines.push(cur);
+    return lines;
+  }
+
+  /* 2行になるときは、読点（、）の後ろか真ん中で区切って、1文字だけ次の行に落ちないようにする */
+  function balancedLines(g, text, maxW) {
+    if (g.measureText(text).width <= maxW) return [text];
+    var chars = Array.from(text), cut = text.lastIndexOf('、');
+    if (cut > 0) {
+      var a = text.slice(0, cut + 1), b = text.slice(cut + 1);
+      if (g.measureText(a).width <= maxW && g.measureText(b).width <= maxW) return [a, b];
+    }
+    var half = Math.ceil(chars.length / 2);
+    return [chars.slice(0, half).join(''), chars.slice(half).join('')];
+  }
+
+  /* 結果カード（1080×1350：SNSで見やすい縦長）を作る */
+  function buildShareCard() {
+    var d = diagnose(state), t = d.main;
+    var W = 1080, H = 1350;
+    var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    var g = cv.getContext('2d');
+    var FONT = '"Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", "Yu Gothic", Meiryo, sans-serif';
+    return Promise.all([loadImg(PX.background(workBg() + '@evening')), loadImg(meSprite(workOutfit(), 'smile', 'raise', 30))]).then(function (imgs) {
+      g.fillStyle = '#f3f9f9'; g.fillRect(0, 0, W, H);
+      /* 上：ドット絵の場面 */
+      g.imageSmoothingEnabled = false;
+      if (imgs[0]) g.drawImage(imgs[0], 0, 0, W, 608);
+      if (imgs[1]) g.drawImage(imgs[1], (W - 288) / 2, 608 - 432 - 8, 288, 432);
+      g.fillStyle = 'rgba(16,24,52,0.72)'; roundRect(g, 40, 40, 330, 72, 36); g.fill();
+      g.fillStyle = '#9ef0e0'; g.font = '800 34px ' + FONT; g.textBaseline = 'middle'; g.fillText('🦷 歯科人生ゲーム', 66, 77);
+      /* 下：結果 */
+      g.fillStyle = '#ffffff'; roundRect(g, 40, 560, W - 80, 650, 36); g.fill();
+      g.textBaseline = 'alphabetic'; g.textAlign = 'center';
+      g.fillStyle = '#5b7072'; g.font = '700 34px ' + FONT; g.fillText('15歳から始めた人生の結果は…', W / 2, 640);
+      g.fillStyle = '#1f8f80'; g.font = '800 58px ' + FONT;
+      var y = 720;
+      balancedLines(g, lifeTitle(state), W - 180).forEach(function (l) { g.fillText(l, W / 2, y); y += 72; });
+      g.strokeStyle = '#dde9e9'; g.lineWidth = 3; g.beginPath(); g.moveTo(140, y - 18); g.lineTo(W - 140, y - 18); g.stroke();
+      y += 40;
+      g.fillStyle = '#5b7072'; g.font = '700 30px ' + FONT; g.fillText('仕事タイプ', W / 2, y); y += 70;
+      g.fillStyle = '#23383a'; g.font = '800 50px ' + FONT;
+      wrapText(g, t.icon + ' ' + t.name, W - 180).slice(0, 2).forEach(function (l) { g.fillText(l, W / 2, y); y += 64; });
+      g.fillStyle = '#5b7072'; g.font = '500 32px ' + FONT;
+      wrapText(g, t.catch, W - 200).slice(0, 2).forEach(function (l) { g.fillText(l, W / 2, y); y += 46; });
+      /* 強い傾向トップ3 */
+      y += 20;
+      var tags = d.tendencies.map(function (x) { return SHORT[x.key]; });
+      g.font = '700 30px ' + FONT;
+      var widths = tags.map(function (s) { return g.measureText(s).width + 48; });
+      var total = widths.reduce(function (a, w) { return a + w; }, 0) + (tags.length - 1) * 16;
+      var x = (W - total) / 2;
+      tags.forEach(function (s, i) {
+        g.fillStyle = '#e3f6f2'; roundRect(g, x, y - 38, widths[i], 54, 27); g.fill();
+        g.fillStyle = '#1f8f80'; g.textAlign = 'left'; g.fillText(s, x + 24, y - 1); x += widths[i] + 16;
+      });
+      g.textAlign = 'center';
+      /* フッター */
+      var grad = g.createLinearGradient(0, 0, W, 0); grad.addColorStop(0, '#2fb7a3'); grad.addColorStop(1, '#3b8fd9');
+      g.fillStyle = grad; g.fillRect(0, H - 110, W, 110);
+      g.fillStyle = '#ffffff'; g.font = '800 34px ' + FONT; g.fillText('あなたも15歳から人生を始めてみる？', W / 2, H - 62);
+      g.font = '500 26px ' + FONT; g.fillText(GAME_URL.replace(/^https?:\/\//, '').replace(/\/$/, ''), W / 2, H - 24);
+      shareCard.url = cv.toDataURL('image/png');
+      return new Promise(function (ok) { if (cv.toBlob) cv.toBlob(function (b) { shareCard.blob = b; ok(); }, 'image/png'); else ok(); });
+    }).then(function () {
+      var img = document.getElementById('share-card');
+      if (img) { img.src = shareCard.url; img.alt = 'シェア用の結果カード：' + lifeTitle(state) + '／' + t.name; }
+      var nat = document.getElementById('share-native');
+      if (nat && window.SHARE_MODE !== 'artifact' && shareCard.blob && navigator.canShare) {
+        try {
+          var f = new File([shareCard.blob], 'dental-life-result.png', { type: 'image/png' });
+          if (navigator.canShare({ files: [f] })) nat.hidden = false;
+        } catch (e) { /* 共有できない端末では表示しない */ }
+      }
+    });
+  }
+
+  function toast(msg) {
+    var el = document.createElement('div');
+    el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(function () { el.remove(); }, 2200);
+  }
+  function copyShareText() {
+    var text = shareText() + '\n' + GAME_URL;
+    function fallback() {
+      var ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      var ok = false; try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      ta.remove();
+      toast(ok ? '文章をコピーしました' : 'コピーできませんでした。長押しで選んでコピーしてください');
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { toast('文章をコピーしました'); }, fallback);
+    else fallback();
+  }
+  function saveShareImage() {
+    if (!shareCard.url) { toast('画像を作成中です。少し待ってからもう一度押してください'); return; }
+    var a = document.createElement('a');
+    a.href = shareCard.url; a.download = 'dental-life-result.png';
+    document.body.appendChild(a); a.click(); a.remove();
+    toast('画像を保存しました');
+  }
+  function nativeShare() {
+    if (!shareCard.blob) return;
+    var f = new File([shareCard.blob], 'dental-life-result.png', { type: 'image/png' });
+    navigator.share({ files: [f], text: shareText() + '\n' + GAME_URL }).catch(function () { /* キャンセルされたときは何もしない */ });
   }
 
   function moneySection() {
@@ -4510,6 +4705,19 @@ function careerPath(s) {
           closeModal();
           state = newState();   // 前回のパラメータや結果は残りません
           render();
+          break;
+        case 'goto-share':
+          var sh = document.getElementById('share');
+          if (sh) window.scrollTo(0, sh.getBoundingClientRect().top + window.pageYOffset - 70);
+          break;
+        case 'share-copy':
+          copyShareText();
+          break;
+        case 'share-save':
+          saveShareImage();
+          break;
+        case 'share-native':
+          nativeShare();
           break;
         case 'clinic':
           lastModalTrigger = el;
